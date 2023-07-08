@@ -21,7 +21,7 @@ from how.stages.train import Validation, set_seed, initialize_dim_reduction
 from examples.demo_how import _overwrite_cirtorch_path, DATASET_URL
 
 
-NUM_WORKERS = 6
+NUM_WORKERS = 1
 
 # note: we only change the line that load the network!
 def train(demo_train, training, validation, model, globals):
