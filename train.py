@@ -193,7 +193,7 @@ def main(args):
     # Run training
     io_helpers.save_params(globals["exp_path"] / f"train_params.yml", params)
     download.download_for_train(params['validation'], DATASET_URL, globals)
-    if params['model']['pretrained'].startswith('http'):
+    if params['model']['pretrained'] and params['model']['pretrained'].startswith('http'):
         # additionally download imagenet pretrained model
         net_name = os.path.basename(params['model']['pretrained'])
         io_helpers.download_files([net_name], globals['root_path'] / "pretraining",
