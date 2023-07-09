@@ -50,7 +50,7 @@ class FIReNet(HOWNet):
         attns = []
         strengths = []
         for s in scales:
-            xs = nn.functional.interpolate(x, scale_factor=s, mode='bilinear', align_corners=False)
+            xs = nn.functional.interpolate(x, scale_factor=s, mode='bilinear', align_corners=False, recompute_scale_factor=True)
             o = self.features(xs)
             o, attn = self.lit(o)
             strength = self.attention(o)
