@@ -56,7 +56,7 @@ def train(demo_train, training, validation, model, globals):
 
     # Initialize training
     optimizer, scheduler, criterion_superfeatures, criterion_attns, train_loader = \
-            initialize_training(net.parameter_groups(training["optimizer"]), training, globals)
+            initialize_training(net.parameter_groups(), training, globals)
     validation = Validation(validation, globals)
 
     for epoch in range(training['epochs']):
