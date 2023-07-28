@@ -57,6 +57,7 @@ validation:
 model:
   architecture: resnet50  # Backbone network
   pretrained: http://download.europe.naverlabs.com/ComputerVision/FIRe/pretraining/fire_imagenet.pth # None or url of the pretrained model
+  freeze_backbone: False
   skip_layer: 1 # How many layers of blocks will be skipped, counting from end
   dim_reduction:
     dim: 128 # The output dimension

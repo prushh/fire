@@ -31,9 +31,12 @@ class FIReNet(HOWNet):
         """Return a copy of this network with a different runtime dict"""
         return self.__class__(self.features, self.attention, self.lit, self.dim_reduction, self.meta, runtime)
 
-    def parameter_groups(self):
+    def parameter_groups(self, freeze_backbone):
         """Return torch parameter groups"""
-        layers = [self.features, self.attention, self.smoothing, self.lit]
+        if freeze_backbone:
+            layers = [self.attention, self.smoothing, self.lit]
+        else:
+            layers = [self.features, self.attention, self.smoothing, self.lit]
         parameters = [{'params': x.parameters()} for x in layers if x is not None]
         if self.dim_reduction:
             # Do not update dimensionality reduction layer
@@ -78,10 +81,11 @@ class FIReNet(HOWNet):
         feats, _, strengths = self.get_superfeatures(x, scales=scales)
         return HF.how_select_local(feats, strengths, scales=scales, features_num=features_num)
 
-def init_network(architecture, pretrained, skip_layer, dim_reduction, lit, runtime):
+def init_network(architecture, pretrained, freeze_backbone, skip_layer, dim_reduction, lit, runtime):
     """Initialize FIRe network
     :param str architecture: Network backbone architecture (e.g. resnet18)
     :param str pretrained: url of the pretrained model (None for using random initialization)
+    :param bool freeze_backbone: freeze or not the backbone (reduces the impact on memory but also reduces performance)
     :param int skip_layer: How many layers of blocks should be skipped (from the end)
     :param dict dim_reduction: Options for the dimensionality reduction layer
     :param dict lit: Options for the lit layer
@@ -105,6 +109,11 @@ def init_network(architecture, pretrained, skip_layer, dim_reduction, lit, runti
         features = features[:-skip_layer]
     backbone_dim = imageretrievalnet.OUTPUT_DIM[architecture] // (2 ** skip_layer)
 
+    backbone_layer = nn.Sequential(*features)
+    if freeze_backbone:
+        for param in backbone_layer.parameters():
+            param.requires_grad = False
+
     att_layer = layers.attention.L2Attention()
 
     lit_layer = LocalfeatureIntegrationTransformer(**lit, input_dim=backbone_dim)
@@ -119,7 +128,7 @@ def init_network(architecture, pretrained, skip_layer, dim_reduction, lit, runti
         "outputdim": reduction_layer.out_channels if dim_reduction else lit['dim'],
         "corercf_size": CORERCF_SIZE[architecture] // (2 ** skip_layer),
     }
-    net = FIReNet(nn.Sequential(*features), att_layer, lit_layer, reduction_layer, meta, runtime)
+    net = FIReNet(backbone_layer, att_layer, lit_layer, reduction_layer, meta, runtime)
     
     if pretrained is not None:
         assert os.path.isfile(pretrained), pretrained

@@ -56,7 +56,7 @@ def train(demo_train, training, validation, model, globals):
 
     # Initialize training
     optimizer, scheduler, criterion_superfeatures, criterion_attns, train_loader = \
-            initialize_training(net.parameter_groups(), training, globals)
+            initialize_training(net.parameter_groups(model['freeze_backbone']), training, globals)
     validation = Validation(validation, globals)
 
     for epoch in range(training['epochs']):
@@ -164,6 +164,8 @@ def main(args):
     parser = argparse.ArgumentParser(description="FIRe training.")
     parser.add_argument('parameters', type=str, help="Relative path to a yaml file that contains parameters.")
     parser.add_argument("--experiment", "-e", metavar="NAME", dest="experiment")
+    parser.add_argument("--negatives-num", "-nn", type=int, metavar="NUM", dest="training.dataset.nnum")
+    parser.add_argument("--freeze-backbone", "-fb", action="store_true", dest="model.freeze_backbone")
     args = parser.parse_args(args)
 
     # Load yaml params
